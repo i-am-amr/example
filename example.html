@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>نظام ضمان المنتجات — v3.58 (Full)</title>
+<!-- SheetJS for Excel import/export -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+  :root{
+    --brand:#f97316; --ink:#0f172a; --muted:#64748b; --bg:#f6f7fb; --card:#fff; --border:#e5e7eb;
+    --ok:#16a34a; --warn:#b45309; --err:#dc2626; --chip:#eef2ff; --chipText:#3730a3; --wa:#25D366; --blue:#0ea5e9;
+  }
+  *{box-sizing:border-box} html,body{height:100%}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Kufi Arabic","Tahoma","Segoe UI",system-ui,Roboto,Arial,sans-serif}
+  header{position:sticky;top:0;background:#fff;border-bottom:1px solid var(--border);z-index:30}
+  .bar{max-width:1200px;margin:auto;padding:12px 16px;display:flex;gap:12px;align-items:center}
+  .logo{width:36px;height:36px;border-radius:12px;background:var(--brand);display:grid;place-items:center;color:#fff;font-weight:800;user-select:none}
+  .title{font-weight:800;letter-spacing:.3px}
+  .version{margin-inline-start:auto;color:var(--muted);font-size:12px}
+  .userchip{margin-inline-start:8px;background:#eef2ff;color:#3730a3;border-radius:999px;padding:6px 10px;font-size:12px}
+  .container{max-width:1200px;margin:18px auto;padding:0 16px}
+  .tabs{display:flex;gap:8px;flex-wrap:wrap}
+  .tab{border:1px solid var(--border);background:#fff;border-radius:999px;padding:9px 14px;cursor:pointer}
+  .tab.active{background:var(--brand);color:#fff;border-color:var(--brand)}
+  section.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-top:12px}
+  h2{margin:0 0 10px 0;font-size:18px}
+  label{display:block;margin:8px 0 4px;color:#334155}
+  input,select,textarea,button{font:inherit}
+  input,select,textarea{width:100%;padding:12px;border:1px solid var(--border);border-radius:12px;background:#fff}
+  textarea{min-height:120px}
+  button{background:var(--brand);color:#fff;border:none;border-radius:12px;padding:11px 14px;cursor:pointer}
+  .btn-ghost{background:#fff;border:1px solid var(--border);color:#0f172a}
+  .btn-wa{background:var(--wa);color:#083}
+  .btn-blue{background:var(--blue);color:#fff}
+  .muted{color:var(--muted)} .mini{font-size:12px}
+  .pill{display:inline-block;padding:7px 10px;border:1px solid var(--border);border-radius:999px;background:#fff}
+  .grid{display:grid;gap:12px;grid-template-columns:repeat(12,1fr)}
+  .col-12{grid-column:span 12} .col-9{grid-column:span 9} .col-8{grid-column:span 8} .col-6{grid-column:span 6} .col-4{grid-column:span 4} .col-3{grid-column:span 3} .col-2{grid-column:span 2}
+  @media (max-width: 900px){ .grid{grid-template-columns:repeat(6,1fr)} .col-9,.col-8,.col-6,.col-4,.col-3,.col-2{grid-column:span 6} }
+  @media (max-width: 640px){ .grid{grid-template-columns:repeat(2,1fr)} .col-9,.col-8,.col-6,.col-4,.col-3,.col-2{grid-column:span 2} }
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .tbl-wrap{overflow:auto;border:1px solid var(--border);border-radius:12px}
+  table{width:100%;border-collapse:collapse;background:#fff}
+  th,td{padding:10px;border-bottom:1px solid var(--border);text-align:start}
+  th{background:#f8fafc;font-weight:700}
+  .qr-grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
+  .label-card{border:1px dashed var(--border);border-radius:12px;padding:12px;text-align:center;background:#fff}
+  .label-card img{width:160px;height:160px}
+  .badge{display:inline-block;padding:4px 8px;border-radius:999px;background:#f1f5f9;color:#0f172a;font-size:12px}
+  .chip{display:inline-block;padding:2px 8px;border-radius:999px;background:var(--chip);color:var(--chipText);font-size:12px}
+  .status-ok{color:#065f46} .status-warn{color:#92400e} .status-err{color:#dc2626}
+  .qr-info{font-size:12px;color:#334155;margin-top:6px;line-height:1.5}
+  .fab-admin{position:fixed;left:16px;bottom:16px;background:#0ea5e9;color:#fff;border-radius:999px;padding:10px 14px;font-size:12px;border:none;display:none;z-index:60}
+  @media print { header,.tabs,.noprint{display:none!important} body{background:#fff} .container{max-width:100%;margin:0;padding:0} section.card{border:none;padding:0;margin:0} .label-card{page-break-inside:avoid} }
+  .searchrow{display:flex;gap:8px;align-items:center}
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <div class="logo" id="logo">W</div>
+    <div class="title">نظام ضمان المنتجات — v3.58</div>
+    <div class="version mini">Full + Excel + QR Search + product_terms</div>
+    <div class="userchip" id="userChip" style="display:none"></div>
+    <button id="btnSwitchUser" class="pill mini" style="margin-inline-start:8px;display:none">تبديل المستخدم</button>
+  </div>
+</header>
+
+<button class="fab-admin" id="fabAdmin">فتح لوحة الإدارة</button>
+
+<div class="container">
+  <div class="tabs noprint" id="tabs">
+    <div class="tab active" data-tab="products">المنتجات</div>
+    <div class="tab" data-tab="cities">المدن/الوكلاء</div>
+    <div class="tab" data-tab="labels">ملصقات QR</div>
+    <div class="tab" data-tab="verify">التحقق</div>
+    <div class="tab" data-tab="register">تسجيل الضمان</div>
+    <div class="tab" data-tab="clients">العملاء</div>
+    <div class="tab" data-tab="campaigns">الحملات</div>
+    <div class="tab" data-tab="users">المستخدمون</div>
+    <div class="tab" data-tab="settings">الإعدادات</div>
+  </div>
+
+  <!-- المنتجات -->
+  <section class="card" id="tab-products">
+    <h2>المنتجات — إضافة / استيراد Excel/CSV / تصدير</h2>
+    <div class="grid">
+      <div class="col-3"><label>رقم الصنف (SKU)</label><input id="p_sku"></div>
+      <div class="col-5"><label>اسم المنتج</label><input id="p_name"></div>
+      <div class="col-2"><label>الضمان (يوم)</label><input id="p_wd" type="number" value="365"></div>
+      <div class="col-12"><label>شروط الضمان (اختياري — خاصة بالمنتج)</label><textarea id="p_terms" rows="3" placeholder="مثال: الضمان لا يشمل سوء الاستخدام..."></textarea></div>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <button id="p_add">إضافة/تحديث</button>
+      <input id="p_file" type="file" accept=".xlsx,.xls,.csv">
+      <button id="p_imp" class="btn-ghost">استيراد من Excel/CSV</button>
+      <button id="p_tpl" class="btn-ghost">تنزيل نموذج Excel</button>
+      <button id="p_exp" class="btn-ghost">تصدير المنتجات (Excel)</button>
+      <button id="p_clr" class="btn-ghost" style="margin-inline-start:auto">مسح الكل</button>
+    </div>
+    <div class="tbl-wrap" style="margin-top:10px">
+      <table id="p_tbl"><thead><tr><th>SKU</th><th>الاسم</th><th>الضمان</th><th>شروط الضمان</th><th>إجراءات</th></tr></thead><tbody></tbody></table>
+    </div>
+  </section>
+
+  <!-- المدن/الوكلاء -->
+  <section class="card" id="tab-cities" style="display:none">
+    <h2>المدن/الوكلاء</h2>
+    <div class="grid">
+      <div class="col-3"><label>المدينة</label><input id="c_name"></div>
+      <div class="col-3"><label>اسم الوكيل</label><input id="c_agent"></div>
+      <div class="col-3"><label>رقم الوكيل</label><input id="c_phone" placeholder="+9665xxxxxxxx"></div>
+      <div class="col-3"><label>عنوان الوكيل (نصي)</label><input id="c_loc"></div>
+      <div class="col-6"><label>رابط خرائط جوجل (اختياري)</label><input id="c_map" placeholder="https://maps.app.goo.gl/..."></div>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <button id="c_add">إضافة مدينة</button>
+      <button id="c_reset" class="btn-ghost">إعادة الافتراضي</button>
+      <button id="c_clr" class="btn-ghost">مسح الكل</button>
+    </div>
+    <div class="tbl-wrap" style="margin-top:10px">
+      <table id="c_tbl"><thead><tr><th>#</th><th>المدينة</th><th>الوكيل</th><th>الهاتف</th><th>العنوان</th><th>رابط الخرائط</th><th>إجراءات</th></tr></thead><tbody></tbody></table>
+    </div>
+  </section>
+
+  <!-- ملصقات QR -->
+  <section class="card" id="tab-labels" style="display:none">
+    <h2>إنشاء وطباعة ملصقات الضمان (QR)</h2>
+    <div class="grid">
+      <div class="col-8">
+        <label>بحث عن المنتج (اسم أو رقم الصنف)</label>
+        <div class="searchrow">
+          <input id="l_search" placeholder="اكتب للبحث...">
+          <button id="l_clear" class="btn-ghost">مسح البحث</button>
+        </div>
+      </div>
+      <div class="col-4"><label>المنتج</label><select id="l_product"></select></div>
+      <div class="col-2"><label>الكمية</label><input id="l_qty" type="number" value="12"></div>
+      <div class="col-6"><label>رابط القاعدة</label><input id="l_base" placeholder="https://example.com/warranty.html"></div>
+      <div class="col-12 mini"><label><input type="checkbox" id="l_client" checked> روابط QR لواجهة العميل فقط</label></div>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <button id="l_make">توليد الملصقات</button>
+      <button id="l_print" class="btn-ghost">طباعة</button>
+      <button id="l_clr" class="btn-ghost">مسح المعروضة</button>
+    </div>
+    <div id="l_grid" class="qr-grid" style="margin-top:16px"></div>
+  </section>
+
+  <!-- التحقق -->
+  <section class="card" id="tab-verify" style="display:none">
+    <h2>التحقق من الكود</h2>
+    <div class="row">
+      <input id="v_code" placeholder="CODE">
+      <button id="v_btn">تحقق</button>
+    </div>
+    <div id="v_out" style="margin-top:10px"></div>
+  </section>
+
+  <!-- تسجيل -->
+  <section class="card" id="tab-register" style="display:none">
+    <h2>تسجيل الضمان</h2>
+    <div class="grid">
+      <div class="col-4"><label>الكود</label><input id="r_code"></div>
+      <div class="col-4"><label>رقم الجوال</label><input id="r_phone" placeholder="+9665XXXXXXXX"></div>
+      <div class="col-4"><label>الاسم</label><input id="r_name"></div>
+      <div class="col-6"><label>مكان الشراء</label><input id="r_place" placeholder="اسم المتجر"></div>
+      <div class="col-6"><label>المدينة</label><select id="r_city"></select></div>
+      <div class="col-4"><label>القيمة (اختياري)</label><input id="r_price" type="number" placeholder="مثال: 150"></div>
+      <div class="col-8"><label>فاتورة الشراء (اختياري، لا يتم إرسالها)</label><input id="r_invoice" type="file" accept=".pdf,.jpg,.png"></div>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <label class="mini"><input type="checkbox" id="r_terms"> أوافق على الشروط والأحكام</label>
+      <button id="r_showT" class="pill" type="button">عرض الشروط</button>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <button id="r_save">حفظ التسجيل</button>
+      <a id="r_wa" target="_blank"><button type="button" class="btn-wa" style="display:none">فتح رسالة واتساب</button></a>
+    </div>
+    <div id="r_msg" style="margin-top:14px"></div>
+  </section>
+
+  <!-- العملاء -->
+  <section class="card" id="tab-clients" style="display:none">
+    <h2>العملاء</h2>
+    <div class="row">
+      <button id="cl_exp">تصدير CSV</button>
+      <button id="cl_clr" class="btn-ghost">مسح الكل (محلي)</button>
+    </div>
+    <div class="tbl-wrap" style="margin-top:10px">
+      <table id="cl_tbl"><thead><tr><th>الكود</th><th>الهاتف</th><th>الاسم</th><th>المتجر</th><th>المدينة</th><th>المنتج</th><th>الضمان</th><th>ينتهي</th><th>التسجيل</th><th>القيمة</th><th>الفاتورة</th></tr></thead><tbody></tbody></table>
+    </div>
+  </section>
+
+  <!-- الحملات -->
+  <section class="card" id="tab-campaigns" style="display:none">
+    <h2>الحملات — إرسال واتساب</h2>
+    <div class="grid">
+      <div class="col-4"><label>اسم الحملة</label><input id="k_name" placeholder="مثال: عرض سبتمبر"></div>
+      <div class="col-4"><label>المدينة</label><select id="k_city"><option value="">الكل</option></select></div>
+      <div class="col-4"><label>المنتج</label><select id="k_prod"><option value="">كل المنتجات</option></select></div>
+      <div class="col-3"><label>من</label><input id="k_from" type="date"></div>
+      <div class="col-3"><label>إلى</label><input id="k_to" type="date"></div>
+      <div class="col-3"><label>حالة</label>
+        <select id="k_state"><option value="">الكل</option><option value="active">ساري</option><option value="expired">منتهي</option></select>
+      </div>
+      <div class="col-3"><label>بحث</label><input id="k_q" placeholder="اسم/هاتف/متجر"></div>
+      <div class="col-6">
+        <label>خيارات</label>
+        <div class="row">
+          <label class="mini"><input type="checkbox" id="k_dedup" checked> إزالة التكرار</label>
+          <label class="mini"><input type="checkbox" id="k_avoid" checked> منع التكرار خلال</label>
+          <input id="k_cool" type="number" value="14" style="max-width:90px"><span class="mini">يوم</span>
+        </div>
+      </div>
+      <div class="col-6">
+        <label>نص الحملة</label>
+        <textarea id="k_text" rows="8" placeholder="اكتب نص الحملة..."></textarea>
+        <div class="mini muted">متغيرات: {{name}} {{product}} {{code}} {{city}} {{agent_name}} {{agent_phone}} {{agent_location}} {{agent_location_map_link}} {{product_terms}} {{warranty_days}} {{place}} {{expiry_date}} {{start_date}}</div>
+      </div>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <button id="k_apply">تطبيق التصفية</button>
+      <button id="k_prev" class="btn-ghost">معاينة</button>
+      <button id="k_links" class="btn-ghost">تصدير روابط</button>
+      <button id="k_send" class="btn-wa">إرسال (فتح روابط)</button>
+    </div>
+    <div id="k_counts" class="mini muted" style="margin-top:6px"></div>
+    <div class="tbl-wrap" style="margin-top:8px">
+      <table id="k_tbl"><thead><tr><th>الهاتف</th><th>الاسم</th><th>المدينة</th><th>المتجر</th><th>المنتج</th><th>الضمان</th><th>ينتهي</th><th>فتح</th></tr></thead><tbody></tbody></table>
+    </div>
+    <div id="k_res" class="mini" style="margin-top:8px"></div>
+  </section>
+
+  <!-- المستخدمون -->
+  <section class="card" id="tab-users" style="display:none">
+    <h2>المستخدمون والصلاحيات</h2>
+    <div class="grid">
+      <div class="col-4"><label>الاسم</label><input id="u_name"></div>
+      <div class="col-4"><label>الهاتف (اختياري)</label><input id="u_phone" placeholder="+9665xxxxxxxx"></div>
+      <div class="col-4">
+        <label>الدور</label>
+        <select id="u_role">
+          <option value="superadmin">مشرف رئيسي</option>
+          <option value="admin">إداري</option>
+          <option value="agent">وكيل/فروع</option>
+          <option value="marketer">تسويق</option>
+          <option value="viewer">عرض فقط</option>
+        </select>
+      </div>
+      <div class="col-3"><label>PIN للدخول</label><input id="u_pin" placeholder="أرقام فقط"></div>
+      <div class="col-9">
+        <label>صلاحيات إضافية</label>
+        <div class="row">
+          <label class="mini"><input type="checkbox" id="u_canExp" checked> تصدير</label>
+          <label class="mini"><input type="checkbox" id="u_canImp" checked> استيراد</label>
+          <label class="mini"><input type="checkbox" id="u_canCamp" checked> حملات</label>
+          <label class="mini"><input type="checkbox" id="u_canCity" checked> إدارة المدن</label>
+          <label class="mini"><input type="checkbox" id="u_canProd" checked> إدارة المنتجات</label>
+          <label class="mini"><input type="checkbox" id="u_active" checked> نشط</label>
+        </div>
+      </div>
+      <div class="col-12"><label>المدن المسموح بها</label><div id="u_cities" class="row"></div></div>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <button id="u_add">إضافة/تحديث مستخدم</button>
+      <button id="u_reset" class="btn-ghost">استرجاع مستخدمين افتراضيين</button>
+    </div>
+    <div class="tbl-wrap" style="margin-top:10px">
+      <table id="u_tbl"><thead><tr><th>#</th><th>الاسم</th><th>الدور</th><th>الهاتف</th><th>مدن</th><th>نشط</th><th>إجراءات</th></tr></thead><tbody></tbody></table>
+    </div>
+  </section>
+
+  <!-- الإعدادات -->
+  <section class="card" id="tab-settings" style="display:none">
+    <h2>الإعدادات</h2>
+    <div class="grid">
+      <div class="col-3"><label>فتح واتساب بعد التسجيل</label><select id="s_auto"><option value="on">مفعّل</option><option value="off">غير مفعّل</option></select></div>
+      <div class="col-9"><label>رابط الشروط (اختياري)</label><input id="s_terms_link" placeholder="https://example.com/terms"></div>
+      <div class="col-12"><label>الشروط والأحكام</label><textarea id="s_terms" rows="6"></textarea></div>
+      <div class="col-12"><label>قالب رسالة التسجيل/الحملات</label><textarea id="s_tpl" rows="16"></textarea></div>
+    </div>
+  </section>
+</div>
+
+<!-- Modal الشروط -->
+<div id="m_terms" class="modal" role="dialog" aria-modal="true" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);align-items:center;justify-content:center;padding:16px;z-index:50">
+  <div class="box" style="background:#fff;max-width:720px;width:100%;border-radius:14px;border:1px solid var(--border);padding:16px;max-height:80vh;overflow:auto">
+    <h3>الشروط والأحكام</h3>
+    <div id="m_terms_body" class="mini" style="line-height:1.8"></div>
+    <div class="row" style="margin-top:8px">
+      <a id="m_terms_link" class="pill" target="_blank" style="display:none">فتح الرابط الخارجي</a>
+      <span></span>
+      <button id="m_terms_ok" class="pill">موافقة</button>
+      <button id="m_terms_close" class="pill" style="background:#334155;color:#fff">إغلاق</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal تسجيل الدخول -->
+<div id="m_login" class="modal" role="dialog" aria-modal="true" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);align-items:center;justify-content:center;padding:16px;z-index:60">
+  <div class="box" style="background:#fff;max-width:600px;width:100%;border-radius:14px;border:1px solid var(--border);padding:16px;max-height:80vh;overflow:auto">
+    <h3>تسجيل الدخول</h3>
+    <div class="grid">
+      <div class="col-8"><label>المستخدم</label><select id="lg_user"></select></div>
+      <div class="col-4"><label>PIN</label><input id="lg_pin" type="password" inputmode="numeric"></div>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <button id="lg_ok" class="btn-blue">دخول</button>
+      <button id="lg_cancel" class="btn-ghost">إلغاء</button>
+      <div id="lg_msg" class="mini status-err"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===== Utilities ===== */
+const U = {
+  el: id => document.getElementById(id),
+  esc: s => (s??"").toString().replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])),
+  save:(k,v)=> localStorage.setItem(k, JSON.stringify(v)),
+  load:(k,f)=>{ try{return JSON.parse(localStorage.getItem(k)||JSON.stringify(f));}catch(e){return f;} },
+  fmtAR:(d)=>{ try{ const dt=new Date(d); return String(dt.getDate()).padStart(2,"0")+"/"+String(dt.getMonth()+1).padStart(2,"0")+"/"+dt.getFullYear(); }catch(e){ return ""; } },
+  addDaysISO:(startISO,days)=> new Date(new Date(startISO).getTime() + (Number(days)||0)*86400000).toISOString(),
+  looksUrl:(s)=> /^https?:\/\/\S+$/i.test(s||""),
+  mapLink:(city)=> city? (U.looksUrl(city.agent_map_url)? city.agent_map_url : ("https://maps.app.goo.gl/?q="+encodeURIComponent([city.agent_location||"", city.name_ar||""].filter(Boolean).join("، ")))) : ""
+};
+
+/* ===== Data Stores ===== */
+let settings = U.load("w58_settings", {
+  autoWA:"on",
+  termsText:"<ol><li>الضمان يشمل العيوب المصنعية فقط.</li><li>مدة الضمان حسب المنتج.</li><li>تطبّق شروط الوكيل في مدينتك.</li></ol>",
+  termsLink:"",
+  tpl:`📩 تأكيد تسجيل الضمان
+
+عميلنا العزيز / {{name}} المحترم،
+تم تسجيل وتأكيد ضمان منتجك بنجاح:
+
+المنتج: {{product}}
+
+مدة الضمان: {{warranty_days}} يوم
+
+بداية الضمان: {{start_date}}
+
+انتهاء الضمان: {{expiry_date}}
+
+تم الشراء من: {{place}}
+
+
+
+---
+
+🏢 بيانات وكيل منطقتك
+
+اسم الوكيل: {{agent_name}}
+
+رقم التواصل: {{agent_phone}}
+
+العنوان: {{agent_location}}
+
+عرض الموقع: اضغط هنا
+{{agent_location_map_link}}
+
+
+
+---
+
+ℹ️ ملاحظة هامة:
+{{product_terms}}
+
+في حال وجود أي مشكلة مستقبلية، يُرجى مراجعة وكيل منطقتكم. تسري الشروط والأحكام.
+
+
+---
+
+🔒 كود الضمان: {{code}}
+
+
+---
+
+⚠️ هذه الرسالة صادرة تلقائيًا من النظام، ولا حاجة للرد عليها.`
+});
+let products = U.load("w58_products", []);
+let cities = U.load("w58_cities", []);
+let regs = U.load("w58_regs", []);
+let lastLabels = U.load("w58_lastLabels", []);
+let sendLog = U.load("w58_sendlog", []);
+let users = U.load("w58_users", []);
+let currentUser = U.load("w58_user", null);
+
+/* Seed defaults */
+(function seedCities(){
+  if(!cities.length){
+    cities=[
+      {id:1,name_ar:"الرياض",agent_name:"وكيل القفز ستار",agent_phone:"+966500000001",agent_location:"حي العليا",agent_map_url:""},
+      {id:2,name_ar:"أحد رفيدة",agent_name:"محل الشامخ",agent_phone:"+966556041715",agent_location:"الرونة – أسواق بن صالح",agent_map_url:"https://maps.app.goo.gl/XXXXX"}
+    ]; U.save("w58_cities", cities);
+  }
+})();
+(function seedUsers(){
+  if(!users.length){
+    users=[
+      {id:1,name:"المالك",role:"superadmin",pin:"1234",phone:"+966500000000",active:true,city_ids:[],perms:{}},
+      {id:2,name:"مسؤول الفرع",role:"admin",pin:"1111",phone:"+966500000111",active:true,city_ids:[],perms:{}},
+      {id:3,name:"وكيل الرياض",role:"agent",pin:"2222",phone:"+966500000222",active:true,city_ids:[1],perms:{}},
+      {id:4,name:"تسويق",role:"marketer",pin:"3333",phone:"+966500000333",active:true,city_ids:[],perms:{campaign:true}},
+    ]; U.save("w58_users", users);
+  }
+})();
+
+/* ===== Roles & Permissions ===== */
+const Roles = {
+  superadmin:{name:"مشرف رئيسي", tabs:["products","cities","labels","verify","register","clients","campaigns","users","settings"], perms:{export:true,import:true,campaign:true,manageCities:true,manageProducts:true}},
+  admin:{name:"إداري", tabs:["products","cities","labels","verify","register","clients","campaigns","settings"], perms:{export:true,import:true,campaign:true,manageCities:true,manageProducts:true}},
+  agent:{name:"وكيل/فروع", tabs:["verify","register","clients"], perms:{export:false,import:false,campaign:false,manageCities:false,manageProducts:false}},
+  marketer:{name:"تسويق", tabs:["clients","campaigns"], perms:{export:false,import:false,campaign:true,manageCities:false,manageProducts:false}},
+  viewer:{name:"عرض فقط", tabs:["clients"], perms:{export:false,import:false,campaign:false,manageCities:false,manageProducts:false}},
+};
+function effectivePerm(key){
+  if(!currentUser) return true;
+  const rolePerm = Roles[currentUser.role]?.perms?.[key];
+  const userOverride = currentUser.perms?.[key];
+  return (userOverride!==undefined)? userOverride : (rolePerm!==undefined? rolePerm : false);
+}
+function can(key){ if(!currentUser) return true; const ok=effectivePerm(key); if(!ok) alert("صلاحية غير متاحة: "+key); return ok; }
+function canRole(list){ if(!currentUser) return true; return list.includes(currentUser.role); }
+
+/* ===== UI Helpers ===== */
+function uiUserChip(){
+  const chip=U.el("userChip"), btn=U.el("btnSwitchUser");
+  if(currentUser){
+    chip.style.display="inline-block"; btn.style.display="inline-block";
+    chip.textContent = currentUser.name + " — " + (Roles[currentUser.role]?.name||currentUser.role);
+  }else{ chip.style.display="none"; btn.style.display="none"; }
+}
+function applyRoleVisibility(){
+  if(!currentUser){ document.querySelectorAll(".tab").forEach(t=> t.style.display=""); return; }
+  const allowed = new Set(Roles[currentUser.role]?.tabs || []);
+  document.querySelectorAll(".tab").forEach(t=>{ t.style.display = allowed.has(t.dataset.tab)? "" : "none"; });
+  const activeTab=document.querySelector(".tab.active");
+  if(activeTab && activeTab.style.display==="none"){
+    const firstAllowed=document.querySelector(".tab:not([style*='display: none'])");
+    if(firstAllowed) uiShowTab(firstAllowed.dataset.tab);
+  }
+}
+
+/* ===== Tabs ===== */
+function uiShowTab(id){
+  if(currentUser){
+    const allowed = Roles[currentUser.role]?.tabs || [];
+    if(!allowed.includes(id)){ alert("ليست لديك صلاحية لفتح هذا القسم."); return; }
+  }
+  document.querySelectorAll(".tab").forEach(t=> t.classList.toggle("active", t.dataset.tab===id));
+  ["products","cities","labels","verify","register","clients","campaigns","users","settings"].forEach(k=> U.el("tab-"+k).style.display = (k===id?"block":"none"));
+  if(id==="products") prodRender();
+  if(id==="cities") cityRender();
+  if(id==="labels") labelsRefreshProducts("");
+  if(id==="register"){ regRefreshCities(); regRefreshLink(); }
+  if(id==="clients") clientsRender();
+  if(id==="campaigns") campInitSelectors();
+  if(id==="settings") settingsBind();
+  if(id==="users") usersRender();
+}
+document.querySelectorAll(".tab").forEach(t=> t.addEventListener("click", ()=> uiShowTab(t.dataset.tab)));
+uiShowTab("products");
+
+/* ===== Products ===== */
+function prodRender(){
+  const tb = U.el("p_tbl").querySelector("tbody"); tb.innerHTML="";
+  products.forEach((p,i)=>{
+    const tr=document.createElement("tr");
+    tr.innerHTML = `<td>${U.esc(p.sku)}</td><td>${U.esc(p.name_ar)}</td><td>${U.esc(p.warranty_days)}</td><td>${U.esc(p.warranty_terms||"")}</td>
+      <td class="nowrap"><button class="pill mini" data-i="${i}" data-act="edit">تعديل</button>
+      <button class="pill mini" data-i="${i}" data-act="del" style="background:#dc2626;color:#fff">حذف</button></td>`;
+    tb.appendChild(tr);
+  });
+}
+U.el("p_add").addEventListener("click", ()=>{
+  if(!can("manageProducts")) return;
+  const sku=U.el("p_sku").value.trim(), name=U.el("p_name").value.trim(); let wd=parseInt(U.el("p_wd").value||"365",10);
+  const terms=(U.el("p_terms").value||"").trim();
+  if(!Number.isFinite(wd)||wd<=0) wd=365;
+  if(!sku||!name){ alert("أدخل SKU واسم المنتج"); return; }
+  const ix=products.findIndex(p=>p.sku.toUpperCase()===sku.toUpperCase());
+  const obj={sku,name_ar:name,warranty_days:wd,warranty_terms:terms};
+  if(ix>=0) products[ix]=obj; else products.push(obj);
+  U.save("w58_products", products);
+  ["p_sku","p_name","p_terms"].forEach(id=> U.el(id).value=""); U.el("p_wd").value="365"; prodRender(); labelsRefreshProducts("");
+});
+U.el("p_tbl").addEventListener("click",(e)=>{
+  const btn=e.target.closest("button"); if(!btn) return; const i=+btn.dataset.i; if(!products[i]) return;
+  if(btn.dataset.act==="del"){ if(!can("manageProducts")) return; products.splice(i,1); U.save("w58_products", products); prodRender(); labelsRefreshProducts(""); }
+  if(btn.dataset.act==="edit"){
+    if(!can("manageProducts")) return;
+    const p=products[i];
+    const sku=prompt("SKU",p.sku)||p.sku;
+    const nm=prompt("اسم المنتج",p.name_ar)||p.name_ar;
+    let wd=parseInt(prompt("مدة الضمان (يوم)",p.warranty_days)||p.warranty_days,10); if(!Number.isFinite(wd)||wd<=0) wd=p.warranty_days;
+    const trm=prompt("شروط الضمان",p.warranty_terms||"")||p.warranty_terms||"";
+    products[i]={sku:sku.trim(),name_ar:nm.trim(),warranty_days:wd,warranty_terms:trm}; U.save("w58_products", products); prodRender(); labelsRefreshProducts("");
+  }
+});
+/* Template Excel */
+U.el("p_tpl").addEventListener("click", ()=>{
+  const rows=[["رقم الصنف (SKU)","اسم المنتج","أيام الضمان","شروط الضمان"],["BAT-70","بطارية 70Ah","730","لا يشمل سوء الاستخدام"]];
+  try{
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Products");
+    const blob = XLSX.write(wb, {bookType:"xlsx", type:"array"});
+    const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([blob],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}));
+    a.download="products-template.xlsx"; a.click();
+  }catch(e){
+    const csv = rows.map(r=>r.join(",")).join("\n");
+    const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"})); a.download="products-template.csv"; a.click();
+  }
+});
+/* Import Excel/CSV */
+U.el("p_imp").addEventListener("click", ()=>{
+  if(!can("import")) return;
+  const f=U.el("p_file").files[0]; if(!f){ alert("اختر ملف Excel/CSV"); return; }
+  const ext = (f.name.split(".").pop()||"").toLowerCase();
+  if(ext==="csv"){
+    const R=new FileReader(); R.onload=()=> importFromRows(parseCSV(R.result)); R.readAsText(f,'utf-8');
+  }else{
+    const R=new FileReader(); R.onload=()=>{
+      try{
+        const wb = XLSX.read(new Uint8Array(R.result), {type:"array"});
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:""});
+        importFromRows(rows);
+      }catch(e){ alert("تعذر قراءة ملف Excel. تأكد من الصيغة."); }
+    }; R.readAsArrayBuffer(f);
+  }
+});
+function parseCSV(text){
+  const lines = text.replace(/\r/g,"").split("\n").filter(x=>x.trim());
+  return lines.map(line=>{
+    const out=[]; let cur=""; let q=false;
+    for(let i=0;i<line.length;i++){
+      const ch=line[i];
+      if(ch=='"'){ if(q && line[i+1]=='"'){ cur+='"'; i++; } else { q=!q; } continue; }
+      if(ch===',' && !q){ out.push(cur); cur=""; continue; }
+      cur+=ch;
+    }
+    out.push(cur); return out;
+  });
+}
+function importFromRows(rows){
+  if(!rows.length){ alert("الملف فارغ"); return; }
+  const head = rows[0].map(x=> (x||"").toString().trim());
+  const keys = {sku:-1,name_ar:-1,wd:-1,terms:-1};
+  head.forEach((h,i)=>{
+    const t=h.replace(/\s+/g,"").toLowerCase();
+    if(t.includes("sku") || t.includes("رقمالصنف")) keys.sku=i;
+    else if(t.includes("اسم") || t.includes("product")) keys.name_ar=i;
+    else if(t.includes("أيام") || t.includes("الضمان") || t.includes("days")) keys.wd=i;
+    else if(t.includes("شرط") || t.includes("terms")) keys.terms=i;
+  });
+  let ok=0;
+  rows.slice(1).forEach(r=>{
+    const sku=(r[keys.sku]||"").toString().trim(); const name=(r[keys.name_ar]||"").toString().trim();
+    let wd=parseInt((r[keys.wd]||"365").toString().trim(),10); if(!Number.isFinite(wd)||wd<=0) wd=365;
+    const terms=(r[keys.terms]||"").toString().trim();
+    if(sku && name){
+      const ix=products.findIndex(p=>p.sku.toUpperCase()===sku.toUpperCase());
+      const obj={sku,name_ar:name,warranty_days:wd,warranty_terms:terms};
+      if(ix>=0) products[ix]=obj; else products.push(obj);
+      ok++;
+    }
+  });
+  U.save("w58_products", products); prodRender(); labelsRefreshProducts("");
+  alert("تم استيراد/تحديث "+ok+" منتج.");
+}
+/* Export Excel */
+U.el("p_exp").addEventListener("click", ()=>{
+  if(!can("export")) return;
+  try{
+    const rows = [["رقم الصنف (SKU)","اسم المنتج","أيام الضمان","شروط الضمان"]];
+    products.forEach(p=> rows.push([p.sku, p.name_ar, p.warranty_days, p.warranty_terms||""]));
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Products");
+    const blob = XLSX.write(wb, {bookType:"xlsx", type:"array"});
+    const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([blob],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}));
+    a.download="products.xlsx"; a.click();
+  }catch(e){
+    const csv = ["رقم الصنف (SKU),اسم المنتج,أيام الضمان,شروط الضمان"]
+      .concat(products.map(p=> [p.sku,p.name_ar,p.warranty_days, (p.warranty_terms||"")].map(v=> `"${(v??"").toString().replace(/"/g,'""')}"`).join(",")))
+      .join("\n");
+    const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"})); a.download="products.csv"; a.click();
+  }
+});
+U.el("p_clr").addEventListener("click", ()=>{ if(!can("manageProducts")) return; if(confirm("مسح جميع المنتجات؟")){ products=[]; U.save("w58_products", products); prodRender(); labelsRefreshProducts(""); }});
+
+/* ===== Cities ===== */
+function cityRender(){
+  const tb=U.el("c_tbl").querySelector("tbody"); tb.innerHTML="";
+  cities.forEach(c=>{
+    const tr=document.createElement("tr");
+    tr.innerHTML = `<td>${c.id}</td><td>${U.esc(c.name_ar)}</td><td>${U.esc(c.agent_name||"")}</td><td>${U.esc(c.agent_phone||"")}</td>
+      <td>${U.esc(c.agent_location||"")}</td><td style="max-width:260px;overflow-wrap:anywhere">${U.esc(c.agent_map_url||"")}</td>
+      <td class="nowrap"><button class="pill mini" data-id="${c.id}" data-act="edit">تعديل</button>
+      <button class="pill mini" data-id="${c.id}" data-act="del" style="background:#dc2626;color:#fff">حذف</button></td>`;
+    tb.appendChild(tr);
+  });
+  regRefreshCities(); campInitSelectors(); usersRenderCitiesChoices();
+}
+function cityNextId(){ return cities.length? Math.max(...cities.map(c=>c.id))+1 : 1; }
+U.el("c_add").addEventListener("click", ()=>{
+  if(!can("manageCities")) return;
+  const nm=U.el("c_name").value.trim(); if(!nm){ alert("أدخل اسم المدينة"); return; }
+  const obj={id:cityNextId(), name_ar:nm, agent_name:U.el("c_agent").value.trim(), agent_phone:U.el("c_phone").value.trim(), agent_location:U.el("c_loc").value.trim(), agent_map_url:U.el("c_map").value.trim()};
+  cities.push(obj); U.save("w58_cities", cities);
+  ["c_name","c_agent","c_phone","c_loc","c_map"].forEach(id=> U.el(id).value="");
+  cityRender();
+});
+U.el("c_tbl").addEventListener("click",(e)=>{
+  const btn=e.target.closest("button"); if(!btn) return; const id=+btn.dataset.id; const c=cities.find(x=>x.id===id); if(!c) return;
+  if(btn.dataset.act==="del"||btn.dataset.act==="edit"){ if(!can("manageCities")) return; }
+  if(btn.dataset.act==="del"){ cities=cities.filter(x=>x.id!==id); U.save("w58_cities", cities); cityRender(); }
+  if(btn.dataset.act==="edit"){
+    const name=prompt("اسم المدينة",c.name_ar)||c.name_ar;
+    const an=prompt("اسم الوكيل",c.agent_name||"")||c.agent_name;
+    const ph=prompt("رقم الوكيل",c.agent_phone||"")||c.agent_phone;
+    const loc=prompt("العنوان",c.agent_location||"")||c.agent_location;
+    const url=prompt("رابط الخرائط",c.agent_map_url||"")||c.agent_map_url;
+    Object.assign(c,{name_ar:name,agent_name:an,agent_phone:ph,agent_location:loc,agent_map_url:url});
+    U.save("w58_cities", cities); cityRender();
+  }
+});
+U.el("c_reset").addEventListener("click", ()=>{
+  if(!can("manageCities")) return;
+  if(!confirm("إعادة المدينتين الافتراضيتين؟")) return;
+  cities=[
+    {id:1,name_ar:"الرياض",agent_name:"وكيل القفز ستار",agent_phone:"+966500000001",agent_location:"حي العليا",agent_map_url:""},
+    {id:2,name_ar:"أحد رفيدة",agent_name:"محل الشامخ",agent_phone:"+966556041715",agent_location:"الرونة – أسواق بن صالح",agent_map_url:"https://maps.app.goo.gl/XXXXX"}
+  ]; U.save("w58_cities", cities); cityRender();
+});
+U.el("c_clr").addEventListener("click", ()=>{ if(!can("manageCities")) return; if(confirm("مسح جميع المدن/الوكلاء؟")){ cities=[]; U.save("w58_cities", cities); cityRender(); }});
+
+/* ===== Labels (QR) ===== */
+function labelsRefreshProducts(filter=""){
+  const s=U.el("l_product"); s.innerHTML="";
+  const data = filter? products.filter(p=> (p.name_ar||"").toLowerCase().includes(filter) || (p.sku||"").toLowerCase().includes(filter) ) : products;
+  if(!data.length){ const o=document.createElement("option"); o.textContent="لا توجد منتجات — أضف أو استورد أولاً"; s.appendChild(o); return; }
+  data.forEach(p=>{ const o=document.createElement("option"); o.value=p.sku; o.textContent=`${p.sku} — ${p.name_ar} (ضمان ${p.warranty_days} يوم)`; s.appendChild(o); });
+}
+U.el("l_search").addEventListener("input", (e)=>{
+  const q=(e.target.value||"").toLowerCase().trim();
+  labelsRefreshProducts(q);
+});
+U.el("l_clear").addEventListener("click", ()=>{ U.el("l_search").value=""; labelsRefreshProducts(""); });
+
+function qrImg(url,size=160){ const img=new Image(); img.width=size; img.height=size; img.loading="lazy"; img.src="https://api.qrserver.com/v1/create-qr-code/?size="+size+"x"+size+"&data="+encodeURIComponent(url); return img; }
+function randomCode(len=12){ const alphabet="ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; let s=""; for(let i=0;i<len;i++) s+=alphabet[Math.floor(Math.random()*alphabet.length)]; let sum=0; for(let ch of s) sum+=ch.charCodeAt(0); return s+String(sum%97).padStart(2,"0"); }
+U.el("l_make").addEventListener("click", ()=>{
+  const sku=U.el("l_product").value; const prod=products.find(p=>p.sku===sku); if(!prod){ alert("اختر المنتج"); return; }
+  const qty=Math.max(1, Math.min(5000, parseInt(U.el("l_qty").value||"1")));
+  let base=U.el("l_base").value.trim(); if(!base){ base = location.origin + location.pathname; }
+  const wrap=U.el("l_grid"); wrap.innerHTML=""; const labels=[];
+  for(let i=0;i<qty;i++){
+    const code=randomCode(); let url=base + (base.includes("?")?"&":"?") + "c=" + code + "&mode=client";
+    const card=document.createElement("div"); card.className="label-card";
+    const img=qrImg(url,160);
+    const info=`<div class="qr-info">
+      <div><b>المنتج:</b> ${U.esc(prod.name_ar)}</div>
+      <div><b>الضمان:</b> ${U.esc(prod.warranty_days)} يوم</div>
+      <div><b>الكود:</b> <span class="badge">${U.esc(code)}</span></div>
+    </div>`;
+    card.appendChild(img);
+    const div=document.createElement("div"); div.innerHTML=info; card.appendChild(div);
+    wrap.appendChild(card);
+    labels.push({code, sku:prod.sku, product:prod.name_ar, warranty_days:prod.warranty_days, product_terms:prod.warranty_terms||"", url});
+  }
+  lastLabels=labels; U.save("w58_lastLabels", lastLabels);
+});
+U.el("l_print").addEventListener("click", ()=> window.print());
+U.el("l_clr").addEventListener("click", ()=> U.el("l_grid").innerHTML="");
+
+/* ===== Verify ===== */
+function daysBetween(aISO,bISO){ return Math.ceil((new Date(bISO)-new Date(aISO))/(1000*60*60*24)); }
+U.el("v_btn").addEventListener("click", ()=>{
+  const code=(U.el("v_code").value||"").trim().toUpperCase();
+  const reg=regs.find(r=>r.code===code); const item=lastLabels.find(x=>x.code===code);
+  let html=`<p><b>الكود:</b> <span class="badge">${U.esc(code)}</span></p>`;
+  if(item){ html+=`<p><b>المنتج:</b> ${U.esc(item.sku)} — ${U.esc(item.product)} / <b>المدة:</b> ${U.esc(item.warranty_days)} يوم</p>`; }
+  if(reg){
+    const start = U.fmtAR(reg.ts);
+    const endISO = reg.warranty_days? U.addDaysISO(reg.ts, reg.warranty_days): reg.ts;
+    const end = U.fmtAR(endISO);
+    const remaining = Math.max(0, reg.warranty_days? (reg.warranty_days - daysBetween(reg.ts, new Date().toISOString())): 0);
+    html+=`<p><b>الحالة:</b> <span class='status-ok'>مسجّل</span></p>`;
+    html+=`<p>تم التسجيل بتاريخ <b>${start}</b> — ينتهي في <b>${end}</b> — المتبقي <b>${remaining}</b> يوم.</p>`;
+  }else{
+    html+=`<p><b>الحالة:</b> <span class='status-warn'>غير مسجّل</span></p>`;
+  }
+  html+=`<p><button id="v_reg" class="pill">الانتقال للتسجيل</button></p>`;
+  U.el("v_out").innerHTML=html;
+  U.el("v_reg").addEventListener("click", ()=>{ U.el("r_code").value=code; uiShowTab("register"); });
+});
+
+/* ===== Register ===== */
+function regRefreshCities(){
+  const s=U.el("r_city"); s.innerHTML="<option value=''>— اختر —</option>";
+  const allowedCityIds = (currentUser && currentUser.city_ids && currentUser.city_ids.length)? new Set(currentUser.city_ids) : null;
+  cities.forEach(c=>{ if(allowedCityIds && !allowedCityIds.has(c.id)) return; const o=document.createElement("option"); o.value=c.id; o.textContent=c.name_ar; s.appendChild(o); });
+}
+function regComputeExpiry(tsISO, wd){ return wd? U.fmtAR(U.addDaysISO(tsISO, wd)) : ""; }
+function regComposeMessage(code, tsISO){
+  const name=(U.el("r_name").value||"").trim() || "عميلنا";
+  const place=(U.el("r_place").value||"").trim();
+  const city=cities.find(c=> String(c.id)===String(U.el("r_city").value));
+  const item=lastLabels.find(x=>x.code===code)||{}; const wd=item.warranty_days||"";
+  const start=U.fmtAR(tsISO); const end=regComputeExpiry(tsISO, wd);
+  const vars={ name, product:item.product||"منتجك", warranty_days:wd, start_date:start, expiry_date:end, place,
+               code, city:city?.name_ar||"", agent_name:city?.agent_name||"", agent_phone:city?.agent_phone||"",
+               agent_location:city?.agent_location||"", agent_location_map_link: U.mapLink(city),
+               product_terms: (item.product_terms||"المنتج تم اختياره بناءً على طلبكم وبجودات متعددة.") };
+  let text = (settings.tpl||"").replace(/{{\s*(\w+)\s*}}/g,(m,k)=> (k in vars)? (vars[k]??""): m);
+  if(code && !text.includes(code)){ text += `\n\n🔒 كود الضمان: ${code}`; }
+  return text;
+}
+function regRefreshLink(ts){
+  const code=(U.el("r_code").value||"").trim().toUpperCase();
+  const phone=(U.el("r_phone").value||"").trim();
+  if(phone && code){
+    const text=regComposeMessage(code, ts||new Date().toISOString());
+    U.el("r_wa").href = `https://wa.me/${phone.replace(/[^+0-9]/g,"")}?text=${encodeURIComponent(text)}`;
+    U.el("r_wa").firstElementChild.style.display="";
+  } else {
+    U.el("r_wa").firstElementChild.style.display="none";
+  }
+}
+["r_code","r_phone","r_name","r_place","r_city"].forEach(id=> U.el(id).addEventListener("input", ()=> regRefreshLink()));
+U.el("r_save").addEventListener("click", ()=>{
+  const code=(U.el("r_code").value||"").trim().toUpperCase(); const phone=(U.el("r_phone").value||"").trim();
+  if(!code||!phone){ alert("الكود والهاتف مطلوبان"); return; }
+  if(!U.el("r_terms").checked){ alert("يجب الموافقة على الشروط"); return; }
+  const city_id=U.el("r_city").value||""; const item=lastLabels.find(x=>x.code===code)||{}; const ts=new Date().toISOString();
+  const price = (U.el("r_price").value||"").trim();
+  const invoiceName = (U.el("r_invoice").files[0]?.name)||"";
+  regs = regs.filter(r=>r.code!==code);
+  regs.push({code, phone, name:(U.el("r_name").value||"").trim(), place:(U.el("r_place").value||"").trim(), city_id: city_id? +city_id:"",
+             sku:item.sku||"", product:item.product||"", warranty_days:item.warranty_days||"", product_terms:item.product_terms||"", ts, price, invoice: invoiceName});
+  U.save("w58_regs", regs);
+  U.el("r_msg").innerHTML="<div class='status-ok'>تم حفظ التسجيل وإعداد رسالة واتساب بالتفاصيل.</div>";
+  regRefreshLink(ts);
+  clientsRender();
+  if(settings.autoWA==="on" && U.el("r_wa").firstElementChild.style.display!=="none"){ window.open(U.el("r_wa").href,"_blank"); }
+});
+
+/* ===== Clients ===== */
+function clientsRender(){
+  const tb=U.el("cl_tbl").querySelector("tbody"); tb.innerHTML="";
+  const allowedCityIds = (currentUser && currentUser.city_ids && currentUser.city_ids.length)? new Set(currentUser.city_ids) : null;
+  regs.slice().sort((a,b)=> (a.ts<b.ts?1:-1)).forEach(r=>{
+    if(allowedCityIds && !allowedCityIds.has(+r.city_id)) return;
+    const c=cities.find(x=> String(x.id)===String(r.city_id));
+    const exp = r.warranty_days? U.fmtAR(U.addDaysISO(r.ts, r.warranty_days)) : "";
+    const tr=document.createElement("tr");
+    tr.innerHTML = `<td><span class="badge">${U.esc(r.code)}</span></td><td>${U.esc(r.phone||"")}</td><td>${U.esc(r.name||"")}</td>
+                    <td>${U.esc(r.place||"")}</td><td>${U.esc(c?c.name_ar:"")}</td><td>${U.esc(r.sku||"")} — ${U.esc(r.product||"")}</td>
+                    <td>${U.esc(r.warranty_days||"")}</td><td>${U.esc(exp||"")}</td><td>${U.esc(U.fmtAR(r.ts))}</td>
+                    <td>${U.esc(r.price||"")}</td><td>${U.esc(r.invoice||"")}</td>`;
+    tb.appendChild(tr);
+  });
+}
+U.el("cl_exp").addEventListener("click", ()=>{
+  if(!can("export")) return;
+  const rows=[["code","phone","name","place","city","sku","product","warranty_days","expiry","created","price","invoice"]];
+  const allowedCityIds = (currentUser && currentUser.city_ids && currentUser.city_ids.length)? new Set(currentUser.city_ids) : null;
+  regs.forEach(r=>{
+    if(allowedCityIds && !allowedCityIds.has(+r.city_id)) return;
+    const c=cities.find(x=> String(x.id)===String(r.city_id));
+    const exp = r.warranty_days? U.fmtAR(U.addDaysISO(r.ts, r.warranty_days)) : "";
+    rows.push([r.code,r.phone||"",r.name||"",r.place||"",c?c.name_ar:"",r.sku||"",r.product||"",r.warranty_days||"",exp,U.fmtAR(r.ts),r.price||"",r.invoice||""]);
+  });
+  const csv = rows.map(r=>r.map(x=>`"${(x??"").toString().replace(/"/g,'""')}"`).join(",")).join("\n");
+  const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"})); a.download="warranty_regs.csv"; a.click();
+});
+U.el("cl_clr").addEventListener("click", ()=>{ if(!can("export")) return; if(confirm("مسح كل التسجيلات (محليًا)؟")){ regs=[]; U.save("w58_regs", regs); clientsRender(); }});
+
+/* ===== Campaigns ===== */
+function campInitSelectors(){
+  const cSel=U.el("k_city"); cSel.innerHTML="<option value=''>الكل</option>";
+  const allowedCityIds = (currentUser && currentUser.city_ids && currentUser.city_ids.length)? new Set(currentUser.city_ids) : null;
+  cities.forEach(c=>{ if(allowedCityIds && !allowedCityIds.has(c.id)) return; const o=document.createElement("option"); o.value=c.id; o.textContent=c.name_ar; cSel.appendChild(o); });
+  const pSel=U.el("k_prod"); pSel.innerHTML="<option value=''>كل المنتجات</option>"; products.forEach(p=>{ const o=document.createElement("option"); o.value=p.sku; o.textContent=`${p.sku} — ${p.name_ar}`; pSel.appendChild(o); });
+  campApply();
+}
+function campState(r){ const end = r.warranty_days? new Date(U.addDaysISO(r.ts, r.warranty_days)).getTime(): 0; if(!end) return "unknown"; return end >= Date.now()? "active":"expired"; }
+function campMsg(r){
+  const c=cities.find(x=> String(x.id)===String(r.city_id))||{};
+  const vars = {
+    name:r.name||"عميلنا", product:r.product||"", code:r.code, city:c.name_ar||"", agent_name:c.agent_name||"", agent_phone:c.agent_phone||"", agent_location:c.agent_location||"", agent_location_map_link: U.mapLink(c),
+    product_terms:r.product_terms||"", warranty_days:r.warranty_days||"", place:r.place||"", expiry_date: U.fmtAR(U.addDaysISO(r.ts, r.warranty_days||0)), start_date: U.fmtAR(r.ts)
+  };
+  const tpl = (U.el("k_text").value||settings.tpl||"");
+  let text = tpl.replace(/{{\s*(\w+)\s*}}/g,(m,k)=> (k in vars)? (vars[k]??""): m);
+  if(r.code && !text.includes(r.code)){ text += `\n\n🔒 كود الضمان: ${r.code}`; }
+  return text;
+}
+function campApply(){
+  const cityId=U.el("k_city").value, sku=U.el("k_prod").value, q=(U.el("k_q").value||"").trim().toLowerCase();
+  const dtFrom=U.el("k_from").value? new Date(U.el("k_from").value+"T00:00:00").getTime() : null;
+  const dtTo=U.el("k_to").value? new Date(U.el("k_to").value+"T23:59:59").getTime() : null;
+  const st=U.el("k_state").value, dedup=U.el("k_dedup").checked, avoid=U.el("k_avoid").checked, cool=parseInt(U.el("k_cool").value||"14",10);
+  if(!can("campaign")){ U.el("k_counts").textContent="لا تملك صلاحية الحملات."; U.el("k_tbl").querySelector("tbody").innerHTML=""; return {list:[],ready:[]}; }
+
+  const allowedCityIds = (currentUser && currentUser.city_ids && currentUser.city_ids.length)? new Set(currentUser.city_ids) : null;
+
+  let list=regs.slice();
+  if(allowedCityIds) list=list.filter(r=> allowedCityIds.has(+r.city_id));
+  if(cityId) list=list.filter(r=> String(r.city_id)===String(cityId));
+  if(sku) list=list.filter(r=> String(r.sku)===String(sku));
+  if(dtFrom) list=list.filter(r=> new Date(r.ts).getTime()>=dtFrom);
+  if(dtTo) list=list.filter(r=> new Date(r.ts).getTime()<=dtTo);
+  if(st==="active") list=list.filter(r=> campState(r)==="active");
+  if(st==="expired") list=list.filter(r=> campState(r)==="expired");
+  if(q) list=list.filter(r=> (r.name||"").toLowerCase().includes(q) || (r.phone||"").toLowerCase().includes(q) || (r.place||"").toLowerCase().includes(q));
+
+  if(dedup){ const seen=new Set(); list=list.filter(r=>{ const key=(r.phone||"").replace(/[^+0-9]/g,""); if(seen.has(key)) return false; seen.add(key); return true; }); }
+
+  const since = Date.now() - cool*86400000;
+  let skipped=0;
+  const ready = list.filter(r=>{
+    if(!avoid) return true;
+    const key=(r.phone||"").replace(/[^+0-9]/g,"");
+    const recent = sendLog.some(x=> x.phone===key && new Date(x.ts).getTime()>=since);
+    if(recent){ skipped++; return false; }
+    return true;
+  });
+
+  const tb=U.el("k_tbl").querySelector("tbody"); tb.innerHTML="";
+  ready.forEach(r=>{
+    const c=cities.find(x=> String(x.id)===String(r.city_id))||{};
+    const exp = r.warranty_days? U.fmtAR(U.addDaysISO(r.ts, r.warranty_days)) : "";
+    const href=`https://wa.me/${(r.phone||"").replace(/[^+0-9]/g,"")}?text=${encodeURIComponent(campMsg(r))}`;
+    const tr=document.createElement("tr");
+    tr.innerHTML = `<td class="nowrap">${U.esc(r.phone||"")}</td><td>${U.esc(r.name||"")}</td><td>${U.esc(c.name_ar||"")}</td>
+                    <td>${U.esc(r.place||"")}</td><td>${U.esc(r.product||"")}</td><td>${U.esc(r.warranty_days||"")}</td>
+                    <td class="nowrap">${U.esc(exp||"")}</td><td><a class="chip" target="_blank" href="${href}">فتح</a></td>`;
+    tb.appendChild(tr);
+  });
+  U.el("k_counts").textContent = `إجمالي العملاء: ${regs.length} • مطابق للفلترة: ${list.length} • جاهز للإرسال: ${ready.length} • متجاوز (تكرار): ${skipped}`;
+  return {list, ready};
+}
+U.el("k_apply").addEventListener("click", campApply);
+U.el("k_prev").addEventListener("click", ()=>{
+  const {ready}=campApply();
+  U.el("k_res").innerHTML = ready.slice(0,20).map(r=>`<div class="mini" style="margin:6px 0;padding:8px;border:1px solid var(--border);border-radius:10px">
+    <div class="muted">إلى: ${U.esc(r.phone)}</div><div>${U.esc(campMsg(r))}</div></div>`).join("") || "<div class='mini'>لا يوجد</div>";
+});
+U.el("k_links").addEventListener("click", ()=>{
+  const {ready}=campApply();
+  const lines = ready.map(r=> `https://wa.me/${(r.phone||"").replace(/[^+0-9]/g,"")}?text=${encodeURIComponent(campMsg(r))}`);
+  const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([lines.join("\n")],{type:"text/plain"})); a.download="whatsapp_links.txt"; a.click();
+});
+U.el("k_send").addEventListener("click", ()=>{
+  const {ready}=campApply(); if(!ready.length){ alert("لا يوجد مستلمون جاهزون"); return; }
+  const camp = (U.el("k_name").value||"").trim() || ("حملة "+new Date().toLocaleString());
+  if(!confirm(`سيتم فتح ${ready.length} رابط واتساب. تابع؟`)) return;
+  ready.forEach(r=>{
+    const href=`https://wa.me/${(r.phone||"").replace(/[^+0-9]/g,"")}?text=${encodeURIComponent(campMsg(r))}`;
+    window.open(href,"_blank");
+    sendLog.push({phone:(r.phone||"").replace(/[^+0-9]/g,""),ts:new Date().toISOString(),campaign:camp});
+  });
+  U.save("w58_sendlog", sendLog);
+  alert("تم تجهيز الروابط.");
+});
+
+/* ===== Settings ===== */
+function settingsBind(){
+  U.el("s_auto").value=settings.autoWA;
+  U.el("s_terms").value=settings.termsText;
+  U.el("s_terms_link").value=settings.termsLink;
+  U.el("s_tpl").value=settings.tpl;
+}
+["s_auto","s_terms","s_terms_link","s_tpl"].forEach(id=> U.el(id).addEventListener("input", ()=>{
+  settings.autoWA = U.el("s_auto").value;
+  settings.termsText = U.el("s_terms").value;
+  settings.termsLink = U.el("s_terms_link").value;
+  settings.tpl = U.el("s_tpl").value;
+  U.save("w58_settings", settings);
+}));
+U.el("r_showT").addEventListener("click", ()=>{
+  U.el("m_terms_body").innerHTML = settings.termsText;
+  const L=settings.termsLink; const a=U.el("m_terms_link"); a.style.display=L?"inline-block":"none"; if(L) a.href=L;
+  document.getElementById("m_terms").style.display="flex";
+});
+U.el("m_terms_close").addEventListener("click", ()=> document.getElementById("m_terms").style.display="none");
+U.el("m_terms_ok").addEventListener("click", ()=>{ U.el("r_terms").checked=true; document.getElementById("m_terms").style.display="none"; });
+
+/* ===== Users ===== */
+function usersRenderCitiesChoices(){
+  const box=U.el("u_cities"); if(!box) return;
+  box.innerHTML="";
+  cities.forEach(c=>{
+    const id="u_city_"+c.id;
+    const div=document.createElement("label"); div.className="mini";
+    div.innerHTML=`<input type="checkbox" id="${id}" data-id="${c.id}"> ${U.esc(c.name_ar)}`;
+    box.appendChild(div);
+  });
+}
+function usersRender(){
+  usersRenderCitiesChoices();
+  const tb=U.el("u_tbl").querySelector("tbody"); tb.innerHTML="";
+  users.forEach(u=>{
+    const cityNames = (u.city_ids||[]).map(id=> (cities.find(c=>c.id===id)?.name_ar||id)).join("، ");
+    const tr=document.createElement("tr");
+    tr.innerHTML = `<td>${u.id}</td><td>${U.esc(u.name)}</td><td>${U.esc(Roles[u.role]?.name||u.role)}</td><td>${U.esc(u.phone||"")}</td>
+      <td>${U.esc(cityNames)}</td><td>${u.active? "✔":"✖"}</td>
+      <td class="nowrap"><button class="pill mini" data-id="${u.id}" data-act="edit">تعديل</button>
+      <button class="pill mini" data-id="${u.id}" data-act="del" style="background:#dc2626;color:#fff">حذف</button></td>`;
+    tb.appendChild(tr);
+  });
+}
+U.el("u_add").addEventListener("click", ()=>{
+  if(!canRole(["superadmin","admin"])) return;
+  const name=U.el("u_name").value.trim(); const role=U.el("u_role").value; const pin=(U.el("u_pin").value||"").trim();
+  if(!name||!role||!pin){ alert("الاسم والدور وPIN مطلوبة"); return; }
+  const phone=U.el("u_phone").value.trim();
+  const city_ids=[...document.querySelectorAll("#u_cities input[type=checkbox]:checked")].map(x=> +x.dataset.id);
+  const perms={ export:U.el("u_canExp").checked, import:U.el("u_canImp").checked, campaign:U.el("u_canCamp").checked, manageCities:U.el("u_canCity").checked, manageProducts:U.el("u_canProd").checked };
+  const active=U.el("u_active").checked;
+  const exist=users.find(u=>u.name===name);
+  if(exist){ Object.assign(exist,{role,phone,pin,city_ids,perms,active}); }
+  else { users.push({id:(users.length? Math.max(...users.map(x=>x.id))+1 : 1), name, role, phone, pin, city_ids, perms, active}); }
+  U.save("w58_users", users);
+  ["u_name","u_phone","u_pin"].forEach(id=> U.el(id).value="");
+  usersRender();
+});
+U.el("u_tbl").addEventListener("click",(e)=>{
+  const btn=e.target.closest("button"); if(!btn) return;
+  const id=+btn.dataset.id; const u=users.find(x=>x.id===id); if(!u) return;
+  if(btn.dataset.act==="del"){ if(!canRole(["superadmin"])) return; users=users.filter(x=>x.id!==id); U.save("w58_users", users); usersRender(); return; }
+  if(btn.dataset.act==="edit"){
+    U.el("u_name").value=u.name; U.el("u_phone").value=u.phone||""; U.el("u_role").value=u.role; U.el("u_pin").value=u.pin||"";
+    U.el("u_canExp").checked = u.perms?.export ?? true;
+    U.el("u_canImp").checked = u.perms?.import ?? true;
+    U.el("u_canCamp").checked = u.perms?.campaign ?? true;
+    U.el("u_canCity").checked = u.perms?.manageCities ?? true;
+    U.el("u_canProd").checked = u.perms?.manageProducts ?? true;
+    U.el("u_active").checked = u.active!==false;
+    usersRenderCitiesChoices();
+    (u.city_ids||[]).forEach(cid=>{ const el=U.el("u_city_"+cid); if(el) el.checked=true; });
+  }
+});
+U.el("u_reset").addEventListener("click", ()=>{ if(!canRole(["superadmin"])) return; if(!confirm("سيتم استرجاع المستخدمين الافتراضيين")) return; localStorage.removeItem("w58_users"); users=[]; (function(){if(!users.length){users=[{id:1,name:"المالك",role:"superadmin",pin:"1234",phone:"+966500000000",active:true,city_ids:[],perms:{}},{id:2,name:"مسؤول الفرع",role:"admin",pin:"1111",phone:"+966500000111",active:true,city_ids:[],perms:{}},{id:3,name:"وكيل الرياض",role:"agent",pin:"2222",phone:"+966500000222",active:true,city_ids:[1],perms:{}},{id:4,name:"تسويق",role:"marketer",pin:"3333",phone:"+966500000333",active:true,city_ids:[],perms:{campaign:true}},]; U.save("w58_users", users);} })(); usersRender(); });
+
+/* ===== URL / Modes ===== */
+const params=new URLSearchParams(location.search);
+const QR_CODE = (params.get("c")||"").toUpperCase().trim();
+const ADMIN_MODE = params.get("admin")==="1";
+let clientMode = U.load("w58_clientMode", null);
+if(clientMode===null){ clientMode = !ADMIN_MODE; }
+function applyMode(){
+  if(clientMode){
+    document.getElementById("tabs").style.display="none";
+    document.getElementById("fabAdmin").style.display="inline-block";
+    U.el("btnSwitchUser").style.display="none";
+    uiShowTab("register");
+  }else{
+    document.getElementById("tabs").style.display="flex";
+    document.getElementById("fabAdmin").style.display="none";
+    U.el("btnSwitchUser").style.display="inline-block";
+  }
+  uiUserChip();
+  applyRoleVisibility();
+}
+document.getElementById("fabAdmin").addEventListener("click", ()=>{
+  clientMode=false; U.save("w58_clientMode", clientMode); applyMode(); showLoginModal();
+});
+let pressTimer=null;
+document.getElementById("logo").addEventListener("mousedown", ()=>{
+  pressTimer=setTimeout(()=>{ clientMode=false; U.save("w58_clientMode", clientMode); applyMode(); showLoginModal(); }, 1200);
+});
+["mouseup","mouseleave","touchend","touchcancel"].forEach(ev=> document.getElementById("logo").addEventListener(ev, ()=> clearTimeout(pressTimer)));
+U.el("btnSwitchUser").addEventListener("click", showLoginModal);
+
+function showLoginModal(){
+  const m=U.el("m_login"); const sel=U.el("lg_user"); const pin=U.el("lg_pin"); const msg=U.el("lg_msg");
+  sel.innerHTML=""; users.filter(u=>u.active!==false).forEach(u=>{ const o=document.createElement("option"); o.value=u.id; o.textContent = u.name+" — "+(Roles[u.role]?.name||u.role); sel.appendChild(o); });
+  msg.textContent=""; pin.value="";
+  m.style.display="flex";
+  U.el("lg_ok").onclick=()=>{
+    const id=+sel.value; const u=users.find(x=>x.id===id);
+    if(!u){ msg.textContent="مستخدم غير موجود"; return; }
+    if((pin.value||"")!== (u.pin||"")){ msg.textContent="PIN غير صحيح"; return; }
+    currentUser=u; U.save("w58_user", currentUser); m.style.display="none"; uiUserChip(); applyRoleVisibility();
+  };
+  U.el("lg_cancel").onclick=()=>{ m.style.display="none"; };
+}
+
+/* Boot */
+function boot(){
+  if(QR_CODE){ U.el("r_code").value = QR_CODE; }
+  regRefreshCities();
+  regRefreshLink();
+  if(ADMIN_MODE){ clientMode=false; }
+  U.save("w58_clientMode", clientMode);
+  applyMode();
+  usersRender();
+  cityRender();
+  prodRender();
+}
+boot();
+</script>
+</body>
+</html>
